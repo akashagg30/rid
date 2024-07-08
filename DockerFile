@@ -1,0 +1,35 @@
+# Use an official Python runtime as a parent image
+FROM python:3.8
+
+# Set environment variables
+ENV PYTHONUNBUFFERED 1
+
+# Set the working directory in the container
+WORKDIR /code
+
+# Copy the current directory contents into the container at /code
+COPY . /code/
+
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3-dev \
+        default-libmysqlclient-dev \
+        build-essential \
+        postgresql \
+        postgresql-contrib \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a Python virtual environment named myvenv
+RUN python3 -m venv myvenv
+
+# Install Python dependencies
+RUN /bin/bash -c "source myvenv/bin/activate \
+    && pip install --upgrade pip \
+    && pip install -r requirements.txt"
+
+# Make port 8000 available to the world outside this container
+EXPOSE 8080
+
+# Define the command to run your application
+CMD ["bash", "-c", "source myvenv/bin/activate && python manage.py runserver 0.0.0.0:8080"]
